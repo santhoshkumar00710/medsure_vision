@@ -1,0 +1,50 @@
+[
+  {
+    "id": "CDSCO-2024-08-003",
+    "brand": "Monocef 1g Injection",
+    "generic": "Ceftriaxone",
+    "batch_raw": "MN-0994",
+    "batch_norm": "MN0994",
+    "mfg": "Aristo Pharmaceuticals Ltd.",
+    "exp": "12/2025",
+    "manufacturer": "Aristo Pharmaceuticals Ltd.",
+    "status": "recalled",
+    "reason": "Sub-standard labeling, non-registered DataMatrix serialization, and unverified supply chain channel.",
+    "source_month": "August 2024",
+    "source_url": "https://cdsco.gov.in/opencms/export/sites/CDSCO_WEB/Drugs/Monthly_Alerts/2024/Aug2024.pdf",
+    "snapshot_date": "2024-08-31",
+    "simulated": true
+  },
+  {
+    "id": "CDSCO-2024-07-012",
+    "brand": "Dolo 650",
+    "generic": "Paracetamol",
+    "batch_raw": "DL-3341",
+    "batch_norm": "DL3341",
+    "mfg": "Micro Labs",
+    "exp": "06/2025",
+    "manufacturer": "Micro Labs",
+    "status": "substandard",
+    "reason": "Dissolution failure — active ingredient below acceptable limits.",
+    "source_month": "July 2024",
+    "source_url": "https://cdsco.gov.in/opencms/export/sites/CDSCO_WEB/Drugs/Monthly_Alerts/2024/Jul2024.pdf",
+    "snapshot_date": "2024-07-31",
+    "simulated": true
+  },
+  {
+    "id": "CDSCO-2024-06-008",
+    "brand": "Azithromycin 500mg",
+    "generic": "Azithromycin",
+    "batch_raw": "AZ-7761",
+    "batch_norm": "AZ7761",
+    "mfg": "Unknown Distributor",
+    "exp": "03/2026",
+    "manufacturer": "Unknown",
+    "status": "spurious",
+    "reason": "Packaging inconsistencies and unverified batch traceability.",
+    "source_month": "June 2024",
+    "source_url": "https://cdsco.gov.in/opencms/export/sites/CDSCO_WEB/Drugs/Monthly_Alerts/2024/Jun2024.pdf",
+    "snapshot_date": "2024-06-30",
+    "simulated": true
+  }
+]

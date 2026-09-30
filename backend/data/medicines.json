@@ -1,0 +1,282 @@
+[
+  {
+    "id": "dolo_650",
+    "name": "Dolo 650",
+    "generic": "Paracetamol 650 mg",
+    "manufacturer": "Micro Labs Ltd.",
+    "aliases": [
+      "Dolo650",
+      "Dolo-650",
+      "D0lo 650",
+      "Dolo 65O",
+      "Doio 650",
+      "paracetamol 650"
+    ],
+    "gtin": "08902341000010"
+  },
+  {
+    "id": "crocin_advance",
+    "name": "Crocin Advance",
+    "generic": "Paracetamol 500 mg",
+    "manufacturer": "Haleon India",
+    "aliases": [
+      "Crocin Advanc",
+      "Crocin Advnce",
+      "Crocin 500",
+      "crocin advance 500",
+      "Cr0cin Advance"
+    ],
+    "gtin": "08902341000027"
+  },
+  {
+    "id": "calpol_500",
+    "name": "Calpol 500",
+    "generic": "Paracetamol 500 mg",
+    "manufacturer": "Haleon India",
+    "aliases": [
+      "Calpol500",
+      "Calpol-500",
+      "Calp0l 500",
+      "Calpol 5OO",
+      "calpol"
+    ],
+    "gtin": "08902341000034"
+  },
+  {
+    "id": "combiflam",
+    "name": "Combiflam",
+    "generic": "Ibuprofen + Paracetamol",
+    "manufacturer": "Sanofi India",
+    "aliases": [
+      "Combif1am",
+      "Combiflarn",
+      "Combi Flam",
+      "combiflam plus"
+    ],
+    "gtin": "08902341000041"
+  },
+  {
+    "id": "azithral_500",
+    "name": "Azithral 500",
+    "generic": "Azithromycin 500 mg",
+    "manufacturer": "Alembic Pharmaceuticals",
+    "aliases": [
+      "Azithral500",
+      "Azithral-500",
+      "Azithromycin 500",
+      "Az1thral 500",
+      "Azithral 5OO"
+    ],
+    "gtin": "08902341000058"
+  },
+  {
+    "id": "augmentin_625",
+    "name": "Augmentin 625 Duo",
+    "generic": "Amoxicillin + Clavulanic acid",
+    "manufacturer": "GSK India Ltd.",
+    "aliases": [
+      "Augmentin 625",
+      "Augmentin625",
+      "Augmentin Duo 625",
+      "Augmentin 625 DUO",
+      "Augment1n 625"
+    ],
+    "gtin": "08902341000065"
+  },
+  {
+    "id": "pan_40",
+    "name": "Pan 40",
+    "generic": "Pantoprazole 40 mg",
+    "manufacturer": "Alkem Laboratories",
+    "aliases": [
+      "Pan40",
+      "Pan-40",
+      "Pantoprazole 40",
+      "P4n 40",
+      "Pan 4O"
+    ],
+    "gtin": "08902341000072"
+  },
+  {
+    "id": "rantac_150",
+    "name": "Rantac 150",
+    "generic": "Ranitidine 150 mg",
+    "manufacturer": "JB Chemicals",
+    "aliases": [
+      "Rantac150",
+      "Rantac-150",
+      "Ranitidine 150",
+      "Rantac 15O",
+      "R4ntac 150"
+    ],
+    "gtin": "08902341000089"
+  },
+  {
+    "id": "cetzine",
+    "name": "Cetzine",
+    "generic": "Cetirizine 10 mg",
+    "manufacturer": "UCB India",
+    "aliases": [
+      "Cetzine 10",
+      "Cetirizine 10",
+      "Cetz1ne",
+      "Cetzlne",
+      "cetrizine"
+    ],
+    "gtin": "08902341000096"
+  },
+  {
+    "id": "allegra_120",
+    "name": "Allegra 120",
+    "generic": "Fexofenadine 120 mg",
+    "manufacturer": "Sanofi India",
+    "aliases": [
+      "Allegra120",
+      "Allegra-120",
+      "Fexofenadine 120",
+      "A11egra 120",
+      "Allegra 12O"
+    ],
+    "gtin": "08902341000102"
+  },
+  {
+    "id": "montair_lc",
+    "name": "Montair LC",
+    "generic": "Montelukast + Levocetirizine",
+    "manufacturer": "Cipla Ltd.",
+    "aliases": [
+      "Montair-LC",
+      "MontairLC",
+      "Montelukast LC",
+      "Montair Lc",
+      "M0ntair LC"
+    ],
+    "gtin": "08902341000119"
+  },
+  {
+    "id": "glycomet_500",
+    "name": "Glycomet 500",
+    "generic": "Metformin 500 mg",
+    "manufacturer": "USV Pvt. Ltd.",
+    "aliases": [
+      "Glycomet500",
+      "Glycomet-500",
+      "Metformin 500",
+      "Glyc0met 500",
+      "Glycomet 5OO"
+    ],
+    "gtin": "08902341000126"
+  },
+  {
+    "id": "amlong_5",
+    "name": "Amlong 5",
+    "generic": "Amlodipine 5 mg",
+    "manufacturer": "Micro Labs Ltd.",
+    "aliases": [
+      "Amlong5",
+      "Amlong-5",
+      "Amlodipine 5",
+      "Am1ong 5",
+      "Aml0ng 5"
+    ],
+    "gtin": "08902341000133"
+  },
+  {
+    "id": "telma_40",
+    "name": "Telma 40",
+    "generic": "Telmisartan 40 mg",
+    "manufacturer": "Glenmark Pharmaceuticals",
+    "aliases": [
+      "Telma40",
+      "Telma-40",
+      "Telmisartan 40",
+      "Te1ma 40",
+      "Telma 4O"
+    ],
+    "gtin": "08902341000140"
+  },
+  {
+    "id": "atorva_10",
+    "name": "Atorva 10",
+    "generic": "Atorvastatin 10 mg",
+    "manufacturer": "Zydus Lifesciences",
+    "aliases": [
+      "Atorva10",
+      "Atorva-10",
+      "Atorvastatin 10",
+      "At0rva 10",
+      "Atorva 1O"
+    ],
+    "gtin": "08902341000157"
+  },
+  {
+    "id": "ecosprin_75",
+    "name": "Ecosprin 75",
+    "generic": "Aspirin 75 mg",
+    "manufacturer": "USV Pvt. Ltd.",
+    "aliases": [
+      "Ecosprin75",
+      "Ecosprin-75",
+      "Aspirin 75",
+      "Ec0sprin 75",
+      "Ecosprin 7S"
+    ],
+    "gtin": "08902341000164"
+  },
+  {
+    "id": "shelcal_500",
+    "name": "Shelcal 500",
+    "generic": "Calcium + Vitamin D3",
+    "manufacturer": "Torrent Pharmaceuticals",
+    "aliases": [
+      "Shelcal500",
+      "Shelcal-500",
+      "Calcium D3 500",
+      "Shelca1 500",
+      "She1cal 500"
+    ],
+    "gtin": "08902341000171"
+  },
+  {
+    "id": "limcee",
+    "name": "Limcee",
+    "generic": "Vitamin C 500 mg",
+    "manufacturer": "Abbott India",
+    "aliases": [
+      "Limcee 500",
+      "Limcee Vitamin C",
+      "L1mcee",
+      "Lirnee",
+      "Ascorbic Acid 500"
+    ],
+    "gtin": "08902341000188"
+  },
+  {
+    "id": "zifi_200",
+    "name": "Zifi 200",
+    "generic": "Cefixime 200 mg",
+    "manufacturer": "FDC Ltd.",
+    "aliases": [
+      "Zifi200",
+      "Zifi-200",
+      "Cefixime 200",
+      "Z1fi 200",
+      "Zifi 2OO"
+    ],
+    "gtin": "08902341000195"
+  },
+  {
+    "id": "thyronorm_50",
+    "name": "Thyronorm 50",
+    "generic": "Thyroxine 50 mcg",
+    "manufacturer": "Abbott India",
+    "aliases": [
+      "Thyronorm50",
+      "Thyronorm-50",
+      "Thyroxine 50",
+      "Thy ronorm 50",
+      "Thyron0rm 50"
+    ],
+    "gtin": "08902341000201"
+  }
+]

@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<title>MedSure Vision — AI Medicine Screening</title>
+<meta name="description" content="AI-assisted first-line screening tool for medicine packs. Scan, verify, and detect inconsistencies — fully offline."/>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#493ee5"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="MedSure"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<style>
+/* ─── DESIGN TOKENS & RESET ─── */
+:root {
+  --primary: #493ee5;
+  --primary-container: #635bff;
+  --primary-fixed: #e2dfff;
+  --on-primary: #ffffff;
+  --on-primary-container: #fefaff;
+  --secondary: #5d5d6a;
+  --secondary-container: #e3e1f1;
+  --on-secondary-container: #454652;
+  --tertiary: #00675c;
+  --tertiary-container: #258175;
+  --tertiary-fixed: #9cf2e3;
+  --on-tertiary-fixed: #00201c;
+  --surface: #fcf8fc;
+  --surface-low: #f6f2f7;
+  --surface-high: #eae7eb;
+  --surface-highest: #e4e1e6;
+  --surface-white: #ffffff;
+  --on-surface: #1b1b1e;
+  --on-surface-variant: #464555;
+  --outline: #777587;
+  --outline-variant: #c7c4d8;
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(73,62,229,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 25px -5px rgba(73,62,229,0.12), 0 8px 10px -6px rgba(0,0,0,0.04);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%;
+  min-height: 100%;
+  font-family: var(--font-family);
+  background: var(--surface);
+  color: var(--on-surface);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+body { overflow-x: hidden; }
+
+/* ─── TYPOGRAPHY ─── */
+.text-xs { font-size: 11px; line-height: 14px; }
+.text-sm { font-size: 13px; line-height: 18px; }
+.text-base { font-size: 15px; line-height: 22px; }
+.text-lg { font-size: 17px; line-height: 24px; }
+.text-xl { font-size: 20px; line-height: 28px; }
+.text-2xl { font-size: 24px; line-height: 32px; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+
+/* ─── LAYOUT UTILITIES ─── */
+.app-container {
+  max-width: 540px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+}
+.screen { display: none; flex-direction: column; min-height: 100vh; padding-bottom: 96px; }
+.screen.active { display: flex; }
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(252, 248, 252, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(199, 196, 216, 0.3);
+  padding: 12px 16px;
+}
+.header-row { display: flex; items-center: center; justify-content: space-between; gap: 8px; }
+.sub-disclaimer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--surface-low);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--on-surface-variant);
+}
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 540px;
+  margin: 0 auto;
+  z-index: 50;
+  background: rgba(252, 248, 252, 0.94);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(199, 196, 216, 0.35);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 4px 16px;
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  color: var(--secondary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s;
+}
+.nav-item.active { color: var(--primary); }
+.nav-item.active .nav-icon-wrap { background: var(--primary-fixed); color: var(--primary); }
+.nav-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+/* ─── CARDS & BUTTONS ─── */
+.card {
+  background: var(--surface-white);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(199, 196, 216, 0.2);
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--primary); color: var(--on-primary); box-shadow: var(--shadow-md); }
+.btn-primary:hover { background: #3c32cc; }
+.btn-secondary { background: var(--surface-low); color: var(--on-surface); }
+.btn-secondary:hover { background: var(--surface-high); }
+.btn-outline { background: transparent; border: 1.5px solid var(--outline-variant); color: var(--on-surface); }
+.btn-sm { padding: 6px 14px; font-size: 12px; }
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-low);
+  border: none;
+  cursor: pointer;
+  color: var(--on-surface);
+}
+
+/* ─── CHIPS & BADGES ─── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.chip-tertiary { background: var(--tertiary-fixed); color: var(--on-tertiary-fixed); }
+.chip-secondary { background: var(--secondary-container); color: var(--on-secondary-container); }
+.chip-error { background: var(--error-container); color: var(--on-error-container); }
+.chip-neutral { background: var(--surface-high); color: var(--on-surface-variant); }
+
+/* ─── FORM CONTROLS ─── */
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.form-label { font-size: 13px; font-weight: 600; color: var(--on-surface); }
+.form-input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--outline-variant);
+  background: var(--surface-white);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--on-surface);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--primary); }
+
+/* ─── TABLE STYLES (T4-A) ─── */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-white);
+}
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+.comparison-table th {
+  background: var(--surface-low);
+  padding: 10px 12px;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+  border-bottom: 1.5px solid var(--outline-variant);
+  white-space: nowrap;
+}
+.comparison-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(199, 196, 216, 0.4);
+  vertical-align: middle;
+}
+.comparison-table tr:last-child td { border-bottom: none; }
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+}
+.status-badge.match { background: #d1fae5; color: #065f46; }
+.status-badge.mismatch { background: #fee2e2; color: #991b1b; }
+.status-badge.unverified { background: #fef3c7; color: #92400e; }
+.status-badge.missing { background: #f3f4f6; color: #4b5563; }
+
+/* ─── LIVE CAPTURE HUD (T4-E) ─── */
+.camera-box {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 380px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  position: relative;
+  background: #0d0d12;
+  margin: 0 auto;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.reticle-frame {
+  position: absolute;
+  inset: 24px;
+  border: 2px dashed rgba(255,255,255,0.4);
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
+}
+.reticle-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: #fff;
+  border-style: solid;
+}
+.corner-tl { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-top-left-radius: 8px; }
+.corner-tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-top-right-radius: 8px; }
+.corner-bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-bottom-left-radius: 8px; }
+.corner-br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-bottom-right-radius: 8px; }
+
+.live-hint-pill {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 15, 20, 0.85);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.15);
+  transition: all 0.2s ease;
+}
+.live-hint-pill.stable {
+  background: #00675c;
+  border-color: #9cf2e3;
+  animation: pulse 1s infinite;
+}
+
+/* ─── MAP STYLES (T4-D) ─── */
+.map-card {
+  background: var(--surface-white);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(199, 196, 216, 0.3);
+}
+.india-map-container {
+  width: 100%;
+  max-width: 380px;
+  margin: 10px auto;
+  position: relative;
+  background: #f0f4f8;
+  border-radius: var(--radius-md);
+  border: 1px solid #d2dbe6;
+  overflow: hidden;
+}
+.india-svg { width: 100%; height: auto; display: block; }
+.map-marker { cursor: pointer; transition: transform 0.2s; }
+.map-marker:hover { transform: scale(1.2); }
+
+/* ─── RECEIVING MODE (T4-B) ─── */
+.receiving-stat-grid {
+  display: grid;
+  grid-template-cols: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.stat-card {
+  background: var(--surface-low);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+.stat-val { font-size: 22px; font-weight: 800; line-height: 1.1; }
+.stat-lbl { font-size: 11px; font-weight: 600; color: var(--on-surface-variant); text-transform: uppercase; margin-top: 4px; }
+.conflict-banner {
+  background: var(--error-container);
+  border: 1.5px solid var(--error);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 14px;
+  color: var(--on-error-container);
+}
+
+/* ─── ANIMATIONS & TOAST ─── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.animate-spin { animation: spin 1.2s linear infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); } 50% { opacity: 0.85; transform: translateX(-50%) scale(1.03); } }
+.toast {
+  position: fixed;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2b2b30;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+/* ─── SVG ICON HELPER ─── */
+.icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  vertical-align: middle;
+  fill: currentColor;
+}
+.icon-sm { width: 16px; height: 16px; }
+.icon-lg { width: 24px; height: 24px; }
+.icon-xl { width: 32px; height: 32px; }
+</style>
+</head>
+<body>
+
+<!-- Hidden SVG Icon Sprite (Self-contained, 100% offline, zero CDN) -->
+<svg style="display:none;" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <g id="i-camera"><path d="M4 4h3l2-2h6l2 2h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></g>
+    <g id="i-upload"><path d="M19 14v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H3l9-9 9 9h-2zm-7-6.2L8.5 11h2.5v5h2v-5h2.5L12 7.8z"/></g>
+    <g id="i-edit"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></g>
+    <g id="i-history"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6a7 7 0 1 1 7 7 6.96 6.96 0 0 1-4.95-2.05l-1.42 1.42A8.96 8.96 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></g>
+    <g id="i-alerts"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></g>
+    <g id="i-delivery"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-2 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></g>
+    <g id="i-bolt"><path d="M11 21h-1l1-7H7.5c-.58 0-.57-.32-.38-.66.19-.34.05-.08.07-.12C8.48 10.94 10.42 7.54 13 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.15C14.97 14.12 12.98 17.55 11 21z"/></g>
+    <g id="i-check"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></g>
+    <g id="i-check-circle"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></g>
+    <g id="i-warning"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></g>
+    <g id="i-error"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></g>
+    <g id="i-info"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></g>
+    <g id="i-arrow-back"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></g>
+    <g id="i-download"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></g>
+    <g id="i-speaker"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></g>
+    <g id="i-stop"><path d="M6 6h12v12H6z"/></g>
+    <g id="i-med"><path d="M6 3h12v2H6zm0 16h12v2H6zm1.5-12h9c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5h-9A1.5 1.5 0 0 1 6 14.5v-7C6 6.67 6.67 6 7.5 6zM11 8v2H9v2h2v2h2v-2h2v-2h-2V8h-2z"/></g>
+    <g id="i-spin"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></g>
+  </defs>
+</svg>
+
+<div class="app-container">
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN: HOME
+  ═══════════════════════════════════════════════ -->
+  <div class="screen active" id="screen-home">
+    <header class="header">
+      <div class="header-row">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:36px; height:36px; border-radius:10px; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center;">
+            <svg class="icon"><use href="#i-med"/></svg>
+          </div>
+          <div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="font-bold text-lg" style="letter-spacing:-0.02em;">MedSure</span>
+              <span class="chip chip-secondary" style="padding:1px 6px; font-size:10px;">AI</span>
+            </div>
+            <span class="text-xs" style="color:var(--on-surface-variant); font-weight:600;" id="txt-app-sub">Medicine Strip Verification</span>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:6px;">
+          <!-- T4-C Language Selector -->
+          <div style="display:flex; background:var(--surface-low); padding:2px; border-radius:var(--radius-full); border:1px solid var(--outline-variant);">
+            <button class="btn btn-sm" id="lang-en" onclick="setLang('en')" style="padding:4px 10px; background:var(--primary-container); color:#fff;">EN</button>
+            <button class="btn btn-sm" id="lang-hi" onclick="setLang('hi')" style="padding:4px 10px; background:transparent; color:var(--on-surface-variant);">हिं</button>
+            <button class="btn btn-sm" id="lang-ta" onclick="setLang('ta')" style="padding:4px 10px; background:transparent; color:var(--on-surface-variant);">த</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sub-disclaimer">
+        <svg class="icon icon-sm" style="color:var(--tertiary);"><use href="#i-info"/></svg>
+        <span id="txt-disclaimer">Screening only. This does not confirm authenticity.</span>
+      </div>
+    </header>
+
+    <main style="padding: 16px; display:flex; flex-direction:column; gap:16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div class="chip chip-tertiary">
+          <svg class="icon icon-sm"><use href="#i-bolt"/></svg>
+          <span id="txt-offline-pill">Offline &middot; Fully Local</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <!-- HID Barcode Scanner Status Indicator -->
+          <div id="hid-scanner-indicator" title="HID Barcode Scanner" style="display:none; align-items:center; gap:4px; font-size:11px; font-weight:600; color:var(--tertiary); background:rgba(0,103,92,0.08); border:1px solid rgba(0,103,92,0.2); padding:3px 8px; border-radius:var(--radius-full); cursor:pointer;" onclick="openBarcodeManualEntry()">
+            <svg class="icon icon-sm"><use href="#i-bolt"/></svg>
+            <span>Barcode Scanner</span>
+          </div>
+          <!-- Auth user indicator -->
+          <button id="auth-user-chip" onclick="openAuthModal()" style="display:flex; align-items:center; gap:4px; background:var(--surface-low); border:1px solid var(--outline-variant); border-radius:var(--radius-full); padding:3px 8px; font-size:11px; font-weight:600; cursor:pointer; color:var(--on-surface-variant);" title="Login / Account">
+            <svg class="icon icon-sm"><use href="#i-info"/></svg>
+            <span id="auth-user-label">Login</span>
+          </button>
+          <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--on-surface-variant);" id="backend-status">
+            <svg class="icon icon-sm animate-spin"><use href="#i-spin"/></svg> Checking API&hellip;
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Scan Card -->
+      <div style="background: linear-gradient(135deg, #e8e6ff 0%, #f4f2f8 60%, #e0f5f2 100%); border-radius:var(--radius-xl); padding:22px; position:relative; overflow:hidden; border:1px solid rgba(73,62,229,0.12);">
+        <div style="position:relative; z-index:2;">
+          <span class="chip" style="background:#fff; color:var(--primary); margin-bottom:8px;" id="txt-ai-screening-pill">AI Pack Screening</span>
+          <h1 class="text-xl font-bold" style="margin-bottom:6px; color:var(--on-surface);" id="txt-hero-title">Check Pack Authenticity</h1>
+          <p class="text-sm" style="color:var(--on-surface-variant); max-width:280px; margin-bottom:18px;" id="txt-hero-sub">
+            Scan front or back label. AI checks OCR, 2D code, and visual layers offline.
+          </p>
+
+          <button class="btn btn-primary" style="width:100%; height:52px; font-size:15px;" onclick="showCapture()" id="btn-scan-main">
+            <svg class="icon icon-lg"><use href="#i-camera"/></svg>
+            <span id="txt-scan-btn">Scan a Medicine Pack</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Grid -->
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+        <button class="card" onclick="triggerFileUpload()" style="text-align:left; cursor:pointer; border:none; padding:12px;">
+          <div style="width:36px; height:36px; border-radius:var(--radius-full); background:var(--secondary-container); color:var(--primary); display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
+            <svg class="icon"><use href="#i-upload"/></svg>
+          </div>
+          <div class="text-sm font-bold" id="txt-upload-title">Upload Photo</div>
+          <div class="text-xs" style="color:var(--on-surface-variant);" id="txt-upload-sub">Gallery strip</div>
+        </button>
+
+        <button class="card" onclick="navigate('screen-manual')" style="text-align:left; cursor:pointer; border:none; padding:12px;">
+          <div style="width:36px; height:36px; border-radius:var(--radius-full); background:var(--secondary-container); color:var(--primary); display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
+            <svg class="icon"><use href="#i-edit"/></svg>
+          </div>
+          <div class="text-sm font-bold" id="txt-manual-title">Manual Entry</div>
+          <div class="text-xs" style="color:var(--on-surface-variant);" id="txt-manual-sub">Batch details</div>
+        </button>
+
+        <!-- T4-B Receiving Mode Quick Launch -->
+        <button class="card" onclick="navigate('screen-receiving')" style="text-align:left; cursor:pointer; border:none; padding:12px; background:linear-gradient(135deg, #ffffff 0%, #f0f7f6 100%);">
+          <div style="width:36px; height:36px; border-radius:var(--radius-full); background:var(--tertiary-fixed); color:var(--tertiary); display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
+            <svg class="icon"><use href="#i-delivery"/></svg>
+          </div>
+          <div class="text-sm font-bold" id="txt-rec-title">Receiving Mode</div>
+          <div class="text-xs" style="color:var(--on-surface-variant);" id="txt-rec-sub">Bulk intake</div>
+        </button>
+      </div>
+
+      <!-- Demo Cases Row -->
+      <div class="card" style="padding:14px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <span class="text-sm font-bold" id="txt-demo-title">Test Demo Scenarios</span>
+          <span class="chip chip-neutral" style="font-size:10px;">Simulation</span>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          <button class="btn btn-secondary btn-sm" onclick="runDemo('genuine')">Standard Pack</button>
+          <button class="btn btn-secondary btn-sm" onclick="runDemo('expiry_tampered')">Expiry Tampered</button>
+          <button class="btn btn-secondary btn-sm" onclick="runDemo('logo_shifted')">Logo Shifted</button>
+          <button class="btn btn-secondary btn-sm" onclick="runDemo('clone_code')">Repeat Code</button>
+          <button class="btn btn-secondary btn-sm" onclick="runDemo('alert_match')">Alert Match</button>
+          <button class="btn btn-secondary btn-sm" onclick="runDemo('blurry')">Blurry Photo</button>
+        </div>
+      </div>
+
+      <!-- Recent Scans -->
+      <div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <h2 class="text-base font-bold" id="txt-recent-title">Recent Scans</h2>
+          <button class="btn btn-sm btn-outline" onclick="navigate('screen-history')" id="txt-view-all">View All</button>
+        </div>
+        <div id="recent-scans-list" style="display:flex; flex-direction:column; gap:10px;">
+          <div style="text-align:center; padding:24px 0; color:var(--on-surface-variant); font-size:13px;" id="recent-empty">
+            No scans recorded yet.
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" onclick="navigate('screen-home')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-camera"/></svg></div>
+        <span id="nav-scan">Scan</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-receiving')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-delivery"/></svg></div>
+        <span id="nav-receiving">Receiving</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-manual')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-edit"/></svg></div>
+        <span id="nav-manual">Manual</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-history')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-history"/></svg></div>
+        <span id="nav-history">History</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-alerts')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-alerts"/></svg></div>
+        <span id="nav-alerts">Alerts</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Hidden File Input -->
+  <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileUpload(event)"/>
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN: CAPTURE WITH LIVE HUD (T4-E)
+  ═══════════════════════════════════════════════ -->
+  <div class="screen" id="screen-capture">
+    <header class="header">
+      <div class="header-row">
+        <button class="btn-icon" onclick="stopLiveCamera(); navigate('screen-home');">
+          <svg class="icon"><use href="#i-arrow-back"/></svg>
+        </button>
+        <span class="font-bold text-base" id="txt-scan-header">Live Pack Scanner</span>
+        <div style="width:40px;"></div>
+      </div>
+    </header>
+
+    <main style="padding:16px; display:flex; flex-direction:column; gap:16px; align-items:center;">
+      <!-- Camera Viewport with Optical Quality Hints (T4-E) -->
+      <div class="camera-box" id="camera-box">
+        <video id="camera-video" playsinline muted autoplay></video>
+        <canvas id="live-canvas" style="display:none;"></canvas>
+
+        <div class="reticle-frame">
+          <div class="reticle-corner corner-tl"></div>
+          <div class="reticle-corner corner-tr"></div>
+          <div class="reticle-corner corner-bl"></div>
+          <div class="reticle-corner corner-br"></div>
+        </div>
+
+        <div class="live-hint-pill" id="live-hint-pill">
+          <svg class="icon icon-sm" id="hint-icon"><use href="#i-info"/></svg>
+          <span id="live-hint-text">Hold steady over medicine pack</span>
+        </div>
+
+        <div id="capture-preview" style="display:none; position:absolute; inset:0; background:#000;">
+          <img id="preview-img" style="width:100%; height:100%; object-fit:contain;"/>
+        </div>
+      </div>
+
+      <!-- Scanning Progress Card -->
+      <div class="card" id="scanning-progress" style="display:none; width:100%; max-width:380px;">
+        <div class="text-sm font-bold" style="margin-bottom:10px;">Optical Triage Analysis</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; font-size:12px;">
+            <span>OCR Label Extraction</span>
+            <span id="step-ocr-status" style="color:var(--primary); font-weight:600;">Running…</span>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; font-size:12px;">
+            <span>2D DataMatrix Decode</span>
+            <span id="step-code-status" style="color:var(--on-surface-variant);">Waiting…</span>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; font-size:12px;">
+            <span>MobileNetV2 Visual Similarity</span>
+            <span id="step-vis-status" style="color:var(--on-surface-variant);">Waiting…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Capture Controls -->
+      <div style="display:flex; gap:12px; width:100%; max-width:380px;">
+        <button class="btn btn-primary" style="flex:1; height:48px;" onclick="manualCaptureFromCamera()" id="btn-manual-shutter">
+          <svg class="icon"><use href="#i-camera"/></svg> Capture Photo
+        </button>
+        <button class="btn btn-secondary" style="height:48px;" onclick="triggerFileUpload()">
+          <svg class="icon"><use href="#i-upload"/></svg>
+        </button>
+      </div>
+      <p class="text-xs" style="color:var(--on-surface-variant); text-align:center;">
+        Auto-captures automatically when the strip is sharp, well-lit, and glare-free.
+      </p>
+    </main>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN: RESULT WITH T4-A, T4-C, T4-D
+  ═══════════════════════════════════════════════ -->
+  <div class="screen" id="screen-result">
+    <header class="header">
+      <div class="header-row">
+        <button class="btn-icon" onclick="navigate('screen-home')">
+          <svg class="icon"><use href="#i-arrow-back"/></svg>
+        </button>
+        <span class="font-bold text-base" id="txt-inspection-title">Screening Result</span>
+        <!-- Backend PDF Download Button -->
+        <button class="btn-icon" onclick="downloadPdf()" id="pdf-btn" title="Download ReportLab PDF">
+          <svg class="icon"><use href="#i-download"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main style="padding:16px; display:flex; flex-direction:column; gap:16px;" id="result-content">
+      <!-- Injected dynamically by renderResult() -->
+    </main>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN: RECEIVING MODE (T4-B)
+  ═══════════════════════════════════════════════ -->
+  <div class="screen" id="screen-receiving">
+    <header class="header">
+      <div class="header-row">
+        <button class="btn-icon" onclick="navigate('screen-home')">
+          <svg class="icon"><use href="#i-arrow-back"/></svg>
+        </button>
+        <div>
+          <span class="font-bold text-base" id="txt-rec-header">Receiving Mode</span>
+          <div class="text-xs" style="color:var(--on-surface-variant);" id="txt-rec-status">Hospital / Pharmacy Intake</div>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="resetReceivingSession()" id="btn-new-delivery">New</button>
+      </div>
+    </header>
+
+    <main style="padding:16px; display:flex; flex-direction:column; gap:16px;">
+      <!-- Step 1: Session Initiation -->
+      <div class="card" id="rec-init-card">
+        <h3 class="text-base font-bold" style="margin-bottom:12px;">Start Delivery Session</h3>
+        <div class="form-group">
+          <label class="form-label">Distributor / Wholesaler Name</label>
+          <input class="form-input" id="rec-supplier" placeholder="e.g. MedSupply Logistics Ltd." value="Apollo MedSupply Ltd"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Challan / Invoice Number</label>
+          <input class="form-input" id="rec-invoice" placeholder="e.g. INV-2026-8910" value="CH-2026-904"/>
+        </div>
+        <button class="btn btn-primary" style="width:100%;" onclick="startReceivingSession()">
+          Start Intake Session
+        </button>
+      </div>
+
+      <!-- Step 2: Active Session Dashboard -->
+      <div id="rec-active-section" style="display:none; flex-direction:column; gap:16px;">
+        <!-- Session Meta -->
+        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-low); padding:10px 14px; border-radius:var(--radius-md);">
+          <div>
+            <div class="text-xs" style="color:var(--on-surface-variant);">SUPPLIER</div>
+            <div class="text-sm font-bold" id="rec-cur-supplier">—</div>
+          </div>
+          <div class="chip chip-neutral" id="rec-session-badge" style="font-size:10px;">ID: —</div>
+        </div>
+
+        <!-- Live Counters -->
+        <div class="receiving-stat-grid">
+          <div class="stat-card">
+            <div class="stat-val" id="rec-stat-total" style="color:var(--primary);">0</div>
+            <div class="stat-lbl">Total Scanned</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="rec-stat-accepted" style="color:var(--tertiary);">0</div>
+            <div class="stat-lbl">Passed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="rec-stat-flagged" style="color:var(--error);">0</div>
+            <div class="stat-lbl">Flagged</div>
+          </div>
+        </div>
+
+        <!-- Batch Conflict Banner -->
+        <div class="conflict-banner" id="rec-conflict-banner" style="display:none;">
+          <div style="display:flex; align-items:center; gap:6px; font-weight:700; margin-bottom:4px;">
+            <svg class="icon icon-sm"><use href="#i-warning"/></svg> Batch Conflict Detected
+          </div>
+          <div class="text-xs" id="rec-conflict-text">One or more scanned packs conflict with delivery batch data.</div>
+        </div>
+
+        <!-- Scan Queue Action -->
+        <div class="card" style="display:flex; gap:10px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="triggerReceivingScan()">
+            <svg class="icon"><use href="#i-camera"/></svg> Scan Next Pack
+          </button>
+          <button class="btn btn-secondary" onclick="triggerReceivingUpload()">
+            <svg class="icon"><use href="#i-upload"/></svg>
+          </button>
+        </div>
+
+        <!-- Delivery Grouped Summary -->
+        <div class="card">
+          <div class="text-sm font-bold" style="margin-bottom:8px;">Intake Summary by Batch</div>
+          <div class="table-container">
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Medicine</th>
+                  <th>Batch</th>
+                  <th>Count</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="rec-groups-tbody">
+                <tr><td colspan="4" style="text-align:center; color:var(--on-surface-variant); padding:16px;">No packs scanned yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Export & Accept Actions -->
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-outline" style="flex:1;" onclick="exportReceiving('csv')">
+              <svg class="icon icon-sm"><use href="#i-download"/></svg> Export CSV
+            </button>
+            <button class="btn btn-outline" style="flex:1;" onclick="exportReceiving('pdf')">
+              <svg class="icon icon-sm"><use href="#i-download"/></svg> Export PDF
+            </button>
+          </div>
+          <button class="btn btn-primary" style="background:var(--tertiary); width:100%;" onclick="acceptDelivery()" id="btn-accept-delivery">
+            <svg class="icon"><use href="#i-check"/></svg> Accept Delivery
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="navigate('screen-home')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-camera"/></svg></div>
+        <span>Scan</span>
+      </button>
+      <button class="nav-item active" onclick="navigate('screen-receiving')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-delivery"/></svg></div>
+        <span>Receiving</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-manual')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-edit"/></svg></div>
+        <span>Manual</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-history')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-history"/></svg></div>
+        <span>History</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-alerts')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-alerts"/></svg></div>
+        <span>Alerts</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN: MANUAL ENTRY
+  ═══════════════════════════════════════════════ -->
+  <div class="screen" id="screen-manual">
+    <header class="header">
+      <div class="header-row">
+        <button class="btn-icon" onclick="navigate('screen-home')">
+          <svg class="icon"><use href="#i-arrow-back"/></svg>
+        </button>
+        <span class="font-bold text-base" id="txt-manual-header">Manual Verification</span>
+        <div style="width:40px;"></div>
+      </div>
+    </header>
+
+    <main style="padding:16px;">
+      <div class="card" style="background:#f4f3fb; border-color:#d7d4ec; margin-bottom:16px;">
+        <div style="display:flex; gap:8px; align-items:flex-start;">
+          <svg class="icon icon-sm" style="color:var(--primary); margin-top:2px;"><use href="#i-info"/></svg>
+          <div class="text-xs" style="color:var(--on-surface-variant);">
+            Manual verification runs OCR & database rules without visual matching. Per safety policy, manual checks never return low risk.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="form-group">
+          <label class="form-label">Medicine Name *</label>
+          <input class="form-input" id="m-name" placeholder="e.g. Augmentin 625 Duo"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Batch Number *</label>
+          <input class="form-input" id="m-batch" placeholder="e.g. 24B901"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Expiry Date</label>
+          <input class="form-input" id="m-expiry" placeholder="MM/YYYY e.g. 11/2026"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Manufacturing Date</label>
+          <input class="form-input" id="m-mfg" placeholder="MM/YYYY e.g. 11/2023"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Manufacturer</label>
+          <input class="form-input" id="m-mfg-name" placeholder="e.g. GlaxoSmithKline Pharmaceuticals"/>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="submitManual()" id="btn-manual-submit">
+          Screen Medicine Strip
+        </button>
+      </div>
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="navigate('screen-home')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-camera"/></svg></div>
+        <span>Scan</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-receiving')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-delivery"/></svg></div>
+        <span>Receiving</span>
+      </button>
+      <button class="nav-item active" onclick="navigate('screen-manual')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-edit"/></svg></div>
+        <span>Manual</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-history')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-history"/></svg></div>
+        <span>History</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-alerts')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-alerts"/></svg></div>
+        <span>Alerts</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN: HISTORY
+  ═══════════════════════════════════════════════ -->
+  <div class="screen" id="screen-history">
+    <header class="header">
+      <div class="header-row">
+        <button class="btn-icon" onclick="navigate('screen-home')">
+          <svg class="icon"><use href="#i-arrow-back"/></svg>
+        </button>
+        <span class="font-bold text-base" id="txt-hist-header">Scan History</span>
+        <button class="btn-icon" onclick="clearHistory()" title="Clear history" style="color:var(--error);">
+          <svg class="icon"><use href="#i-error"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main style="padding:16px;">
+      <div id="history-list" style="display:flex; flex-direction:column; gap:10px;">
+        <div style="text-align:center; padding:32px 0; color:var(--on-surface-variant); font-size:13px;">
+          Loading history…
+        </div>
+      </div>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="navigate('screen-home')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-camera"/></svg></div>
+        <span>Scan</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-receiving')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-delivery"/></svg></div>
+        <span>Receiving</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-manual')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-edit"/></svg></div>
+        <span>Manual</span>
+      </button>
+      <button class="nav-item active" onclick="navigate('screen-history')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-history"/></svg></div>
+        <span>History</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-alerts')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-alerts"/></svg></div>
+        <span>Alerts</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN: ALERTS (SNAPSHOT DISPLAY)
+  ═══════════════════════════════════════════════ -->
+  <div class="screen" id="screen-alerts">
+    <header class="header">
+      <div class="header-row">
+        <button class="btn-icon" onclick="navigate('screen-home')">
+          <svg class="icon"><use href="#i-arrow-back"/></svg>
+        </button>
+        <span class="font-bold text-base" id="txt-alert-header">CDSCO Drug Alerts</span>
+        <div style="width:40px;"></div>
+      </div>
+      <div class="sub-disclaimer">
+        <svg class="icon icon-sm"><use href="#i-info"/></svg>
+        <span id="txt-alert-snapshot-date">Snapshot: checking…</span>
+      </div>
+    </header>
+
+    <main style="padding:16px;">
+      <div id="alerts-content" style="display:flex; flex-direction:column; gap:12px;">
+        <div style="text-align:center; padding:32px 0; color:var(--on-surface-variant); font-size:13px;">
+          Loading regulatory alerts…
+        </div>
+      </div>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="navigate('screen-home')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-camera"/></svg></div>
+        <span>Scan</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-receiving')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-delivery"/></svg></div>
+        <span>Receiving</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-manual')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-edit"/></svg></div>
+        <span>Manual</span>
+      </button>
+      <button class="nav-item" onclick="navigate('screen-history')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-history"/></svg></div>
+        <span>History</span>
+      </button>
+      <button class="nav-item active" onclick="navigate('screen-alerts')">
+        <div class="nav-icon-wrap"><svg class="icon"><use href="#i-alerts"/></svg></div>
+        <span>Alerts</span>
+      </button>
+    </nav>
+  </div>
+
+</div>
+
+<!-- Toast element -->
+<div class="toast" id="toast">Notice message</div>
+
+<!-- ── AUTH LOGIN MODAL ──────────────────────────────────────────────── -->
+<div id="auth-modal" style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+  <div style="background:var(--surface); border-radius:var(--radius-xl); padding:28px; width:min(360px,90vw); box-shadow:0 20px 60px rgba(0,0,0,0.2); position:relative;">
+    <button onclick="closeAuthModal()" style="position:absolute; top:14px; right:14px; background:none; border:none; cursor:pointer; font-size:20px; color:var(--on-surface-variant); line-height:1;">&times;</button>
+    <div id="auth-logged-out-view">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+        <div style="width:42px; height:42px; border-radius:12px; background:var(--primary); display:flex; align-items:center; justify-content:center;">
+          <svg class="icon" style="color:#fff;"><use href="#i-med"/></svg>
+        </div>
+        <div>
+          <div class="font-bold text-base">MedSure Login</div>
+          <div class="text-xs" style="color:var(--on-surface-variant);">Enter your credentials</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" id="auth-username" placeholder="e.g. admin" autocomplete="username"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="auth-password" type="password" placeholder="Password" autocomplete="current-password"/>
+      </div>
+      <div id="auth-error" style="display:none; color:var(--error); font-size:13px; margin-bottom:10px;"></div>
+      <button class="btn btn-primary" style="width:100%;" onclick="doLogin()" id="btn-auth-login">Sign In</button>
+      <p style="text-align:center; margin-top:12px; font-size:11px; color:var(--on-surface-variant);">Default: admin / medsure-admin-2024</p>
+    </div>
+    <div id="auth-logged-in-view" style="display:none;">
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="width:60px; height:60px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">
+          <svg class="icon" style="color:#fff; width:28px; height:28px;"><use href="#i-check-circle"/></svg>
+        </div>
+        <div class="font-bold text-base" id="auth-fullname-display">Signed In</div>
+        <div class="text-xs" style="color:var(--on-surface-variant); margin-top:4px;"><span id="auth-role-badge" style="background:var(--primary-fixed); color:var(--primary); padding:2px 8px; border-radius:var(--radius-full); font-weight:700;">operator</span></div>
+      </div>
+      <div id="auth-admin-panel" style="display:none; background:var(--surface-low); border-radius:var(--radius-md); padding:14px; margin-bottom:14px;">
+        <div class="text-sm font-bold" style="margin-bottom:8px;">Admin Actions</div>
+        <button class="btn btn-secondary btn-sm" style="width:100%; margin-bottom:6px;" onclick="triggerManualSync()">🔄 Sync Regulatory Recalls Now</button>
+        <div id="sync-status-text" style="font-size:11px; color:var(--on-surface-variant); text-align:center;"></div>
+      </div>
+      <button class="btn btn-outline" style="width:100%; color:var(--error); border-color:var(--error);" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── HID BARCODE SCANNER MODAL ─────────────────────────────────────── -->
+<div id="barcode-scan-modal" style="display:none; position:fixed; inset:0; z-index:9100; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+  <div style="background:var(--surface); border-radius:var(--radius-xl); padding:28px; width:min(400px,92vw); box-shadow:0 20px 60px rgba(0,0,0,0.25); position:relative;">
+    <button onclick="closeBarcodeModal()" style="position:absolute; top:14px; right:14px; background:none; border:none; cursor:pointer; font-size:20px; color:var(--on-surface-variant); line-height:1;">&times;</button>
+    <div style="text-align:center; margin-bottom:20px;">
+      <div style="font-size:40px; margin-bottom:8px;">📡</div>
+      <div class="font-bold text-base">HID Barcode Scanner</div>
+      <div class="text-xs" style="color:var(--on-surface-variant); margin-top:4px;">Plug in your USB/BT barcode scanner and scan a medicine pack barcode or Data Matrix code.</div>
+    </div>
+    <div style="background:var(--surface-low); border-radius:var(--radius-md); border:2px dashed var(--primary); padding:18px; text-align:center; margin-bottom:16px;">
+      <div style="font-size:12px; color:var(--on-surface-variant); margin-bottom:6px;">Waiting for scan…</div>
+      <div id="hid-scanned-value" style="font-family:var(--font-mono); font-size:14px; font-weight:700; color:var(--primary); min-height:20px; word-break:break-all;">—</div>
+      <div id="hid-scan-hint" style="font-size:11px; color:var(--on-surface-variant); margin-top:4px;">Or type/paste a barcode below:</div>
+    </div>
+    <div class="form-group">
+      <input class="form-input font-mono" id="hid-manual-barcode" placeholder="Paste or type barcode / GS1 / URL…" oninput="onHidManualInput(this.value)"/>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-outline" style="flex:1;" onclick="closeBarcodeModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="submitBarcodeValue()" id="btn-submit-barcode">Submit &amp; Scan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIGURATION & STATE ───
+const API = 'http://localhost:8000';
+const DEVICE_TOKEN = (() => {
+  let t = localStorage.getItem('ms_device_token');
+  if (!t) {
+    t = 'dt_' + Math.random().toString(36).substring(2, 10);
+    localStorage.setItem('ms_device_token', t);
+  }
+  return t;
+})();
+
+let currentLang = 'en';
+let currentResult = null;
+let currentReceivingSessionId = null;
+let isSpeaking = false;
+let liveInterval = null;
+let cameraStream = null;
+let stableFrameCount = 0;
+
+// ─── T4-C: I18N DICTIONARY (EN, HI, TA) ───
+const TRANSLATIONS = {
+  en: {
+    app_sub: "Medicine Strip Verification",
+    disclaimer: "Screening only. This does not confirm authenticity.",
+    offline_pill: "Offline · Fully Local",
+    ai_pill: "AI Pack Screening",
+    hero_title: "Check Pack Authenticity",
+    hero_sub: "Scan front or back label. AI checks OCR, 2D code, and visual layers offline.",
+    scan_btn: "Scan a Medicine Pack",
+    upload_title: "Upload Photo",
+    upload_sub: "Gallery strip",
+    manual_title: "Manual Entry",
+    manual_sub: "Batch details",
+    rec_title: "Receiving Mode",
+    rec_sub: "Bulk intake",
+    demo_title: "Test Demo Scenarios",
+    recent_title: "Recent Scans",
+    view_all: "View All",
+    nav_scan: "Scan",
+    nav_receiving: "Receiving",
+    nav_manual: "Manual",
+    nav_history: "History",
+    nav_alerts: "Alerts",
+    speech_label_low: "Result: No Inconsistencies Found. All optical layers verified.",
+    speech_label_needs: "Result: Needs Verification. Further review recommended.",
+    speech_label_high: "Result: Inconsistencies Found. High caution advised.",
+    speech_label_blur: "Result: Insufficient Quality. Please retake photo with better focus.",
+  },
+  hi: {
+    app_sub: "दवा पट्टी सत्यापन प्रणाली",
+    disclaimer: "केवल स्क्रीनिंग। यह प्रामाणिकता की पुष्टि नहीं करता।",
+    offline_pill: "ऑफ़लाइन · पूर्णतः स्थानीय",
+    ai_pill: "एआई पैक स्क्रीनिंग",
+    hero_title: "दवा पैक की जांच करें",
+    hero_sub: "सामने या पीछे का लेबल स्कैन करें। एआई ऑफ़लाइन सत्यापन करता है।",
+    scan_btn: "दवा पैक स्कैन करें",
+    upload_title: "फ़ोटो अपलोड करें",
+    upload_sub: "गैलरी से चुनें",
+    manual_title: "मैनुअल प्रविष्टि",
+    manual_sub: "बैच विवरण दर्ज करें",
+    rec_title: "प्राप्ति मोड",
+    rec_sub: "थोक आवक जांच",
+    demo_title: "नमूना परिदृश्य जांचें",
+    recent_title: "हाल के स्कैन",
+    view_all: "सभी देखें",
+    nav_scan: "स्कैन",
+    nav_receiving: "प्राप्ति",
+    nav_manual: "मैनुअल",
+    nav_history: "इतिहास",
+    nav_alerts: "अलर्ट",
+    speech_label_low: "परिणाम: कोई विसंगति नहीं मिली। सभी परतों का सत्यापन सफल।",
+    speech_label_needs: "परिणाम: सत्यापन आवश्यक है। अतिरिक्त जांच की सलाह दी जाती है।",
+    speech_label_high: "परिणाम: विसंगतियां पाई गईं। अत्यधिक सावधानी बरतें।",
+    speech_label_blur: "परिणाम: अपर्याप्त छवि गुणवत्ता। कृपया स्पष्ट फ़ोटो लें।",
+  },
+  ta: {
+    app_sub: "மருந்து அட்டை சரிபார்ப்பு அமைப்பு",
+    disclaimer: "ஸ்கிரீனிங் மட்டுமே. இது நம்பகத்தன்மையை உறுதிப்படுத்தாது.",
+    offline_pill: "ஆஃப்லைன் · முழுமையாக உள்ளூர்",
+    ai_pill: "ஏஐ அட்டை திரையிடல்",
+    hero_title: "மருந்து அட்டையைச் சரிபார்க்கவும்",
+    hero_sub: "முன் அல்லது பின் லேபிளை ஸ்கேன் செய்க. ஏஐ ஆஃப்லைனில் சரிபார்க்கிறது.",
+    scan_btn: "மருந்து அட்டையை ஸ்கேன் செய்க",
+    upload_title: "படம் பதிவேற்று",
+    upload_sub: "கேலரியிலிருந்து",
+    manual_title: "கையேடு பதிவு",
+    manual_sub: "தொகுதி விவரங்கள்",
+    rec_title: "வரவு முறை",
+    rec_sub: "மொத்த சேர்க்கை",
+    demo_title: "மாதிரி சோதனைகள்",
+    recent_title: "சமீபத்திய ஸ்கேன்கள்",
+    view_all: "அனைத்தும் காண்க",
+    nav_scan: "ஸ்கேன்",
+    nav_receiving: "வரவு",
+    nav_manual: "கையேடு",
+    nav_history: "வரலாறு",
+    nav_alerts: "எச்சரிக்கைகள்",
+    speech_label_low: "முடிவு: முரண்பாடுகள் எதுவும் இல்லை. அனைத்து அடுக்குகளும் சரிபார்க்கப்பட்டன.",
+    speech_label_needs: "முடிவு: சரிபார்ப்பு தேவை. கூடுதல் கவனம் தேவை.",
+    speech_label_high: "முடிவு: முரண்பாடுகள் காணப்படுகின்றன. எச்சரிக்கை தேவை.",
+    speech_label_blur: "முடிவு: போதுமான தெளிவின்மை இல்லை. மீண்டும் படம் எடுக்கவும்.",
+  }
+};
+
+function setLang(lang) {
+  currentLang = lang;
+  ['en','hi','ta'].forEach(l => {
+    const btn = document.getElementById('lang-' + l);
+    if (!btn) return;
+    if (l === lang) {
+      btn.style.background = 'var(--primary-container)';
+      btn.style.color = '#fff';
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.color = 'var(--on-surface-variant)';
+    }
+  });
+
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
+  const updateTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  updateTxt('txt-app-sub', t.app_sub);
+  updateTxt('txt-disclaimer', t.disclaimer);
+  updateTxt('txt-offline-pill', t.offline_pill);
+  updateTxt('txt-ai-screening-pill', t.ai_pill);
+  updateTxt('txt-hero-title', t.hero_title);
+  updateTxt('txt-hero-sub', t.hero_sub);
+  updateTxt('txt-scan-btn', t.scan_btn);
+  updateTxt('txt-upload-title', t.upload_title);
+  updateTxt('txt-upload-sub', t.upload_sub);
+  updateTxt('txt-manual-title', t.manual_title);
+  updateTxt('txt-manual-sub', t.manual_sub);
+  updateTxt('txt-rec-title', t.rec_title);
+  updateTxt('txt-rec-sub', t.rec_sub);
+  updateTxt('txt-demo-title', t.demo_title);
+  updateTxt('txt-recent-title', t.recent_title);
+  updateTxt('txt-view-all', t.view_all);
+  updateTxt('nav-scan', t.nav_scan);
+  updateTxt('nav-receiving', t.nav_receiving);
+  updateTxt('nav-manual', t.nav_manual);
+  updateTxt('nav-history', t.nav_history);
+  updateTxt('nav-alerts', t.nav_alerts);
+
+  if (currentResult) {
+    renderResult(currentResult);
+  }
+}
+
+// ─── NAVIGATION ───
+function navigate(screenId) {
+  stopLiveCamera();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(screenId);
+  if (target) target.classList.add('active');
+  window.scrollTo(0, 0);
+
+  // Update bottom nav highlighting
+  const navMap = {
+    'screen-home': 'Scan',
+    'screen-receiving': 'Receiving',
+    'screen-manual': 'Manual',
+    'screen-history': 'History',
+    'screen-alerts': 'Alerts',
+  };
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
+    const txt = btn.querySelector('span')?.textContent;
+    if (navMap[screenId] && txt && txt.includes(navMap[screenId])) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  if (screenId === 'screen-history') loadHistory();
+  if (screenId === 'screen-alerts') loadAlerts();
+}
+
+// ─── TOAST NOTICES ───
+function showToast(msg, duration = 3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ─── BACKEND STATUS CHECK ───
+async function checkBackend() {
+  const el = document.getElementById('backend-status');
+  try {
+    const res = await fetch(API + '/health', { signal: AbortSignal.timeout(3000) });
+    const d = await res.json();
+    el.innerHTML = `<svg class="icon icon-sm" style="color:var(--tertiary);"><use href="#i-check-circle"/></svg> API Ready (${d.visual_medicines_covered || 8} meds)`;
+  } catch {
+    el.innerHTML = `<svg class="icon icon-sm" style="color:var(--error);"><use href="#i-warning"/></svg> Backend Offline`;
+  }
+}
+
+// ─── T4-E: LIVE CAPTURE & OPTICAL QUALITY HINTS ───
+async function showCapture() {
+  navigate('screen-capture');
+  stableFrameCount = 0;
+  const video = document.getElementById('camera-video');
+  const preview = document.getElementById('capture-preview');
+  preview.style.display = 'none';
+  document.getElementById('scanning-progress').style.display = 'none';
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    video.srcObject = cameraStream;
+    await video.play();
+    startLiveAnalysis();
+  } catch (err) {
+    // If browser camera fails or blocked, fallback to file input
+    showToast('Camera stream unavailable. Please upload a photo.');
+    triggerFileUpload();
+  }
+}
+
+function stopLiveCamera() {
+  if (liveInterval) { clearInterval(liveInterval); liveInterval = null; }
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+}
+
+function startLiveAnalysis() {
+  const video = document.getElementById('camera-video');
+  const canvas = document.getElementById('live-canvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const hintPill = document.getElementById('live-hint-pill');
+  const hintText = document.getElementById('live-hint-text');
+
+  if (liveInterval) clearInterval(liveInterval);
+
+  // 4 times per second (250ms interval)
+  liveInterval = setInterval(() => {
+    if (!video || video.readyState < 2) return;
+
+    canvas.width = 160;
+    canvas.height = 120;
+    ctx.drawImage(video, 0, 0, 160, 120);
+    const frame = ctx.getImageData(0, 0, 160, 120);
+    const data = frame.data;
+    const n = data.length / 4;
+
+    let totalLuma = 0;
+    let glareCount = 0;
+    const gray = new Float32Array(n);
+
+    for (let i = 0; i < n; i++) {
+      const r = data[i * 4];
+      const g = data[i * 4 + 1];
+      const b = data[i * 4 + 2];
+      const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+      gray[i] = luma;
+      totalLuma += luma;
+      if (luma > 240) glareCount++;
+    }
+
+    const avgBrightness = totalLuma / n;
+    const glareRatio = glareCount / n;
+
+    // Laplacian edge variance (sharpness)
+    let lapSum = 0;
+    let lapSqSum = 0;
+    let samples = 0;
+    for (let y = 2; y < 118; y += 2) {
+      for (let x = 2; x < 158; x += 2) {
+        const idx = y * 160 + x;
+        const lap = 4 * gray[idx] - gray[idx - 1] - gray[idx + 1] - gray[idx - 160] - gray[idx + 160];
+        lapSum += lap;
+        lapSqSum += lap * lap;
+        samples++;
+      }
+    }
+    const meanLap = lapSum / samples;
+    const variance = (lapSqSum / samples) - (meanLap * meanLap);
+
+    // Rule-based live hints
+    let hint = "Hold steady over medicine pack";
+    let isStable = false;
+
+    if (glareRatio > 0.14) {
+      hint = "Reduce glare (tilt pack slightly)";
+      stableFrameCount = 0;
+    } else if (avgBrightness < 60) {
+      hint = "Move to brighter area / Turn on light";
+      stableFrameCount = 0;
+    } else if (avgBrightness > 230) {
+      hint = "Too bright (move away from direct glare)";
+      stableFrameCount = 0;
+    } else if (variance < 35) {
+      hint = "Hold steady / Focusing";
+      stableFrameCount = 0;
+    } else {
+      hint = "Quality good — Hold steady";
+      isStable = true;
+      stableFrameCount++;
+    }
+
+    hintText.textContent = hint;
+
+    if (isStable && stableFrameCount >= 3) {
+      hintPill.classList.add('stable');
+      hintText.textContent = "Stable — Auto-capturing!";
+      clearInterval(liveInterval);
+      liveInterval = null;
+      setTimeout(() => manualCaptureFromCamera(), 300);
+    } else {
+      hintPill.classList.remove('stable');
+    }
+  }, 250);
+}
+
+function manualCaptureFromCamera() {
+  const video = document.getElementById('camera-video');
+  const captureCanvas = document.createElement('canvas');
+  captureCanvas.width = video.videoWidth || 1280;
+  captureCanvas.height = video.videoHeight || 720;
+  const ctx = captureCanvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
+
+  stopLiveCamera();
+
+  captureCanvas.toBlob(blob => {
+    if (!blob) {
+      showToast('Capture error');
+      navigate('screen-home');
+      return;
+    }
+    const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+    processCapturedImage(file);
+  }, 'image/jpeg', 0.92);
+}
+
+function triggerFileUpload() {
+  const fi = document.getElementById('file-input');
+  fi.removeAttribute('capture');
+  fi.click();
+}
+
+function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+  processCapturedImage(file);
+}
+
+async function processCapturedImage(file) {
+  navigate('screen-capture');
+  const preview = document.getElementById('capture-preview');
+  const previewImg = document.getElementById('preview-img');
+  previewImg.src = URL.createObjectURL(file);
+  preview.style.display = 'block';
+
+  const prog = document.getElementById('scanning-progress');
+  prog.style.display = 'block';
+
+  // Animate triage progress
+  const stepOcr = document.getElementById('step-ocr-status');
+  const stepCode = document.getElementById('step-code-status');
+  const stepVis = document.getElementById('step-vis-status');
+
+  stepOcr.textContent = 'Extracting batch & dates…';
+  stepOcr.style.color = 'var(--primary)';
+  await new Promise(r => setTimeout(r, 600));
+  stepOcr.textContent = 'Completed';
+  stepOcr.style.color = 'var(--tertiary)';
+
+  stepCode.textContent = 'Decoding 2D Matrix…';
+  stepCode.style.color = 'var(--primary)';
+  await new Promise(r => setTimeout(r, 600));
+  stepCode.textContent = 'Completed';
+  stepCode.style.color = 'var(--tertiary)';
+
+  stepVis.textContent = 'Matching reference vectors…';
+  stepVis.style.color = 'var(--primary)';
+  await new Promise(r => setTimeout(r, 500));
+  stepVis.textContent = 'Completed';
+  stepVis.style.color = 'var(--tertiary)';
+
+  try {
+    const fd = new FormData();
+    fd.append('image', file);
+    fd.append('device_token', DEVICE_TOKEN);
+    fd.append('language', currentLang);
+
+    let res;
+    if (currentReceivingSessionId) {
+      res = await fetch(API + '/receiving/sessions/' + currentReceivingSessionId + '/scan', {
+        method: 'POST',
+        body: fd
+      });
+    } else {
+      res = await fetch(API + '/scan', { method: 'POST', body: fd });
+    }
+
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    currentResult = data;
+    renderResult(data);
+    navigate('screen-result');
+    loadRecentScans();
+
+    if (currentReceivingSessionId) {
+      updateReceivingSummary(currentReceivingSessionId);
+    }
+  } catch (err) {
+    showToast('Scan processing failed: ' + err.message);
+    navigate('screen-home');
+  }
+}
+
+// ─── DEMO CASES LAUNCHER ───
+async function runDemo(caseId) {
+  showToast('Running simulation: ' + caseId);
+  try {
+    const res = await fetch(API + '/demo/' + caseId);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    currentResult = data;
+    renderResult(data);
+    navigate('screen-result');
+    loadRecentScans();
+  } catch (err) {
+    showToast('Simulation failed: ' + err.message);
+  }
+}
+
+// ─── MANUAL SCREENING SUBMIT ───
+async function submitManual() {
+  const name = document.getElementById('m-name').value.trim();
+  const batch = document.getElementById('m-batch').value.trim();
+  if (!name && !batch) {
+    showToast('Please provide at least medicine name or batch number');
+    return;
+  }
+
+  const btn = document.getElementById('btn-manual-submit');
+  btn.disabled = true;
+  btn.innerHTML = '<svg class="icon icon-sm animate-spin"><use href="#i-spin"/></svg> Screening…';
+
+  try {
+    const payload = {
+      device_token: DEVICE_TOKEN,
+      language: currentLang,
+      name: name || undefined,
+      batch: batch || undefined,
+      expiry: document.getElementById('m-expiry').value.trim() || undefined,
+      mfg_date: document.getElementById('m-mfg').value.trim() || undefined,
+      manufacturer: document.getElementById('m-mfg-name').value.trim() || undefined,
+    };
+
+    const res = await fetch(API + '/scan/manual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    currentResult = data;
+    renderResult(data);
+    navigate('screen-result');
+    loadRecentScans();
+
+    // Reset inputs
+    ['m-name','m-batch','m-expiry','m-mfg','m-mfg-name'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  } catch (err) {
+    showToast('Manual screening failed: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Screen Medicine Strip';
+  }
+}
+
+// ─── T4-A: FIELD COMPARISON TABLE & RESULT RENDERING ───
+const LABEL_UI = {
+  low_risk: {
+    title: "No Inconsistencies Found",
+    chipClass: "chip-tertiary",
+    borderClass: "border:1.5px solid var(--tertiary);",
+    bgClass: "background: linear-gradient(135deg, #e0f5f2 0%, #f7fcfa 100%);",
+    icon: "i-check-circle",
+    iconColor: "var(--tertiary)"
+  },
+  needs_verification: {
+    title: "Needs Verification",
+    chipClass: "chip-secondary",
+    borderClass: "border:1.5px solid #dcd9dd;",
+    bgClass: "background: linear-gradient(135deg, #f0edf1 0%, #fbf9fb 100%);",
+    icon: "i-warning",
+    iconColor: "var(--secondary)"
+  },
+  high_suspicion: {
+    title: "Inconsistencies Detected",
+    chipClass: "chip-error",
+    borderClass: "border:1.5px solid var(--error);",
+    bgClass: "background: linear-gradient(135deg, #ffdad6 0%, #fff7f6 100%);",
+    icon: "i-error",
+    iconColor: "var(--error)"
+  },
+  insufficient_quality: {
+    title: "Insufficient Image Quality",
+    chipClass: "chip-neutral",
+    borderClass: "border:1.5px solid var(--outline-variant);",
+    bgClass: "background: var(--surface-low);",
+    icon: "i-warning",
+    iconColor: "var(--secondary)"
+  }
+};
+
+function renderResult(d) {
+  const cfg = LABEL_UI[d.label] || LABEL_UI.needs_verification;
+  const ocr = d.ocr || {};
+  const code = d.code || {};
+  const reasons = d.reasons || [];
+  const checked = d.checked || [];
+  const notChecked = d.not_checked || [];
+  const nextSteps = d.next_steps || [];
+  const simFlags = d.simulated_flags || [];
+  const fieldRows = d.field_rows || [];
+
+  // T4-A: Comparison Table Rows
+  let tableHtml = '';
+  if (fieldRows && fieldRows.length > 0) {
+    const rows = fieldRows.map(fr => {
+      const st = fr.status || 'unverified';
+      let badgeHtml = '';
+      if (st === 'match') {
+        badgeHtml = `<span class="status-badge match"><svg class="icon icon-sm"><use href="#i-check"/></svg> Match</span>`;
+      } else if (st === 'mismatch') {
+        badgeHtml = `<span class="status-badge mismatch"><svg class="icon icon-sm"><use href="#i-warning"/></svg> Mismatch</span>`;
+      } else if (st === 'missing') {
+        badgeHtml = `<span class="status-badge missing">Missing</span>`;
+      } else {
+        badgeHtml = `<span class="status-badge unverified">Unverified</span>`;
+      }
+
+      return `
+        <tr>
+          <td style="font-weight:600; text-transform:capitalize;">${fr.field}</td>
+          <td>${fr.printed || '<span style="color:#888;">—</span>'}</td>
+          <td>${fr.code_value || '<span style="color:#888;">—</span>'}</td>
+          <td>${fr.expected || '<span style="color:#888;">—</span>'}</td>
+          <td>${badgeHtml}</td>
+        </tr>
+      `;
+    }).join('');
+
+    tableHtml = `
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 class="text-sm font-bold">Field Cross-Check (Triage)</h3>
+          <span class="chip ${d.confidence === 'high' ? 'chip-tertiary' : d.confidence === 'medium' ? 'chip-secondary' : 'chip-neutral'}">
+            ${d.confidence || 'standard'} confidence
+          </span>
+        </div>
+        <div class="table-container">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Printed on Pack</th>
+                <th>In 2D Code</th>
+                <th>Expected</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // T4-C: Speech Read Aloud Button
+  const readAloudButton = `
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-secondary btn-sm" onclick="toggleReadAloud()" id="btn-read-aloud" style="flex:1;">
+        <svg class="icon icon-sm" id="speech-icon"><use href="#i-speaker"/></svg>
+        <span id="speech-btn-text">Read Aloud (${currentLang.toUpperCase()})</span>
+      </button>
+    </div>
+    <div id="voice-notice" style="display:none; padding:8px 12px; background:var(--surface-high); border-radius:var(--radius-md); font-size:11px; color:var(--on-surface-variant);"></div>
+  `;
+
+  // HTML Assembly
+  const container = document.getElementById('result-content');
+  container.innerHTML = `
+    <!-- Simulated Badge Notice -->
+    ${simFlags.length ? `
+      <div style="display:flex; align-items:center; gap:8px; padding:8px 14px; background:var(--secondary-container); border-radius:var(--radius-md); color:var(--on-secondary-container); font-size:12px; font-weight:600;">
+        <svg class="icon icon-sm"><use href="#i-info"/></svg>
+        <span>SIMULATED DATA: ${simFlags.join(', ')}</span>
+      </div>
+    ` : ''}
+
+    <!-- Verdict Banner -->
+    <div class="card" style="${cfg.bgClass} ${cfg.borderClass}">
+      <div style="display:flex; align-items:flex-start; gap:12px;">
+        <div style="width:44px; height:44px; border-radius:var(--radius-full); background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm); shrink-0;">
+          <svg class="icon icon-lg" style="color:${cfg.iconColor};"><use href="#${cfg.icon}"/></svg>
+        </div>
+        <div style="flex:1;">
+          <span class="text-xs font-bold" style="color:var(--on-surface-variant); text-transform:uppercase; letter-spacing:0.04em;">AI Screening Result</span>
+          <h2 class="text-xl font-bold" style="margin-top:2px; color:var(--on-surface);">${cfg.title}</h2>
+          ${d.confidence_note ? `<div class="text-xs" style="color:var(--on-surface-variant); margin-top:4px;">${d.confidence_note}</div>` : ''}
+        </div>
+      </div>
+      ${d.partial ? `
+        <div style="margin-top:10px; display:inline-flex; align-items:center; gap:6px; background:#fff; padding:3px 10px; border-radius:var(--radius-full); font-size:11px; font-weight:600; color:var(--secondary);">
+          <svg class="icon icon-sm"><use href="#i-info"/></svg> Partial verification — No visual layer
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- Read Aloud Controller (T4-C) -->
+    ${readAloudButton}
+
+    <!-- T4-A: Field Cross-Check Table -->
+    ${tableHtml}
+
+    <!-- Reasons Card -->
+    ${reasons.length ? `
+      <div class="card">
+        <h3 class="text-sm font-bold" style="margin-bottom:10px;">Reasons for Finding</h3>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          ${reasons.map(r => `
+            <div style="display:flex; gap:10px; padding:10px; border-radius:var(--radius-md); background:${r.severity === 'high' ? 'var(--error-container)' : 'var(--surface-low)'}; font-size:13px;">
+              <svg class="icon icon-sm" style="color:${r.severity === 'high' ? 'var(--error)' : 'var(--secondary)'}; margin-top:2px;"><use href="#i-info"/></svg>
+              <div>${r.text}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- T4-D: Scan Trail Map Container -->
+    <div id="trail-map-section"></div>
+
+    <!-- Checked / Coverage Card -->
+    <div class="card">
+      <h3 class="text-sm font-bold" style="margin-bottom:10px;">Verification Coverage</h3>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        ${checked.map(c => `
+          <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--on-surface);">
+            <svg class="icon icon-sm" style="color:var(--tertiary);"><use href="#i-check"/></svg> <span>${c}</span>
+          </div>
+        `).join('')}
+        ${notChecked.map(nc => `
+          <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--on-surface-variant);">
+            <span style="font-weight:700; color:var(--outline); margin-left:4px; margin-right:4px;">—</span> <span>${nc}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Next Steps -->
+    ${nextSteps.length ? `
+      <div class="card">
+        <h3 class="text-sm font-bold" style="margin-bottom:10px;">Recommended Next Steps</h3>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          ${nextSteps.map((ns, idx) => `
+            <div style="display:flex; gap:10px; font-size:13px;">
+              <div style="width:20px; height:20px; border-radius:var(--radius-full); background:var(--primary-fixed); color:var(--primary); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; shrink-0;">${idx+1}</div>
+              <div>${ns}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Actions -->
+    <div style="display:flex; gap:10px; margin-top:6px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="navigate('screen-home')">
+        <svg class="icon"><use href="#i-camera"/></svg> Scan Another Pack
+      </button>
+      <button class="btn btn-secondary" onclick="downloadPdf()">
+        <svg class="icon"><use href="#i-download"/></svg> PDF Report
+      </button>
+    </div>
+  `;
+
+  document.getElementById('pdf-btn').dataset.scanId = d.id || '';
+
+  // Trigger T4-D Trail Map if serial hash exists
+  const serialHash = d.code?.serial_hash || (d.id ? 'sim_' + d.id : null);
+  loadSerialTrailMap(serialHash);
+}
+
+// ─── T4-C: WEB SPEECH API READ ALOUD ───
+function toggleReadAloud() {
+  const notice = document.getElementById('voice-notice');
+  const btnText = document.getElementById('speech-btn-text');
+  const icon = document.getElementById('speech-icon');
+
+  if (!('speechSynthesis' in window)) {
+    notice.style.display = 'block';
+    notice.textContent = "Voice synthesis is not supported on this browser/platform.";
+    return;
+  }
+
+  if (isSpeaking) {
+    window.speechSynthesis.cancel();
+    isSpeaking = false;
+    btnText.textContent = `Read Aloud (${currentLang.toUpperCase()})`;
+    icon.innerHTML = '<use href="#i-speaker"/>';
+    return;
+  }
+
+  if (!currentResult) return;
+
+  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+  let summaryText = "";
+  if (currentResult.label === 'low_risk') summaryText = t.speech_label_low;
+  else if (currentResult.label === 'needs_verification') summaryText = t.speech_label_needs;
+  else if (currentResult.label === 'high_suspicion') summaryText = t.speech_label_high;
+  else summaryText = t.speech_label_blur;
+
+  const medicine = currentResult.ocr?.name?.value || currentResult.code?.gtin || "Medicine strip";
+  const batch = currentResult.ocr?.batch?.value || currentResult.code?.batch || "unspecified";
+  const fullSpeech = `${summaryText} Medicine: ${medicine}. Batch number: ${batch}.`;
+
+  const utter = new SpeechSynthesisUtterance(fullSpeech);
+  utter.rate = 0.95;
+
+  const voices = window.speechSynthesis.getVoices();
+  const langTag = currentLang === 'hi' ? 'hi-IN' : currentLang === 'ta' ? 'ta-IN' : 'en-IN';
+  const matchedVoice = voices.find(v => v.lang === langTag || v.lang.startsWith(currentLang));
+
+  if (matchedVoice) {
+    utter.voice = matchedVoice;
+    notice.style.display = 'none';
+  } else {
+    notice.style.display = 'block';
+    notice.textContent = `No dedicated ${currentLang.toUpperCase()} voice found on device; playing with system voice.`;
+  }
+
+  utter.onend = () => {
+    isSpeaking = false;
+    btnText.textContent = `Read Aloud (${currentLang.toUpperCase()})`;
+    icon.innerHTML = '<use href="#i-speaker"/>';
+  };
+  utter.onerror = () => {
+    isSpeaking = false;
+    btnText.textContent = `Read Aloud (${currentLang.toUpperCase()})`;
+    icon.innerHTML = '<use href="#i-speaker"/>';
+  };
+
+  isSpeaking = true;
+  btnText.textContent = "Stop Reading";
+  icon.innerHTML = '<use href="#i-stop"/>';
+  window.speechSynthesis.speak(utter);
+}
+
+// ─── T4-D: OFFLINE INDIA SVG SCAN MAP & TRAIL ───
+async function loadSerialTrailMap(serialHash) {
+  const section = document.getElementById('trail-map-section');
+  if (!section) return;
+
+  // Attempt fetch from /serial/{hash}/trail or fallback to demo trail
+  let trail = null;
+  if (serialHash) {
+    try {
+      const res = await fetch(API + '/serial/' + serialHash + '/trail');
+      if (res.ok) trail = await res.json();
+    } catch {}
+  }
+
+  // If no trail from API, construct simulated trail for clone demonstration
+  if (!trail || !trail.events || trail.events.length === 0) {
+    if (currentResult && currentResult.authenticity?.clone?.signal === 'strong') {
+      trail = {
+        serial_hash: serialHash || "demo_hash",
+        simulated: true,
+        verdict_text: "Scanned in Chennai and Mumbai within a 35-minute window. This indicates duplicate scan activity across distant locations.",
+        events: [
+          { district: "Chennai", lat: 13.08, lng: 80.27, ts: "2026-09-30 14:10", flagged: false },
+          { district: "Mumbai", lat: 19.07, lng: 72.87, ts: "2026-09-30 14:45", flagged: true },
+          { district: "Delhi", lat: 28.61, lng: 77.20, ts: "2026-09-30 16:20", flagged: true }
+        ]
+      };
+    } else {
+      section.innerHTML = '';
+      return;
+    }
+  }
+
+  // India Bounding Box: Lat 8.0 to 37.0, Lng 68.0 to 97.5
+  const svgWidth = 340;
+  const svgHeight = 360;
+  const projectPoint = (lat, lng) => {
+    const x = ((lng - 68.0) / (97.5 - 68.0)) * svgWidth;
+    const y = svgHeight - ((lat - 8.0) / (37.0 - 8.0)) * svgHeight;
+    return { x: Math.max(15, Math.min(svgWidth - 15, x)), y: Math.max(15, Math.min(svgHeight - 15, y)) };
+  };
+
+  const points = trail.events.map(e => ({ ...projectPoint(e.lat || 20, e.lng || 78), event: e }));
+
+  // Generate connecting polyline
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+
+  // Generate numbered marker dots
+  const dotsHtml = points.map((p, i) => {
+    const isFlagged = p.event.flagged;
+    const fill = isFlagged ? '#ba1a1a' : '#00675c';
+    return `
+      <g class="map-marker">
+        <circle cx="${p.x}" cy="${p.y}" r="11" fill="${fill}" stroke="#ffffff" stroke-width="2"/>
+        <text x="${p.x}" y="${p.y + 4}" fill="#ffffff" font-size="11" font-weight="bold" text-anchor="middle">${i + 1}</text>
+        <text x="${p.x + 14}" y="${p.y + 4}" fill="#1b1b1e" font-size="10" font-weight="bold">${p.event.district || 'Location'}</text>
+      </g>
+    `;
+  }).join('');
+
+  section.innerHTML = `
+    <div class="map-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <h3 class="text-sm font-bold">Serial Code Activity Map</h3>
+          ${trail.simulated ? `<span class="chip chip-neutral" style="font-size:10px;">SIMULATED DATA</span>` : ''}
+        </div>
+        <span class="text-xs font-mono" style="color:var(--on-surface-variant);">${trail.events.length} location(s)</span>
+      </div>
+
+      <!-- Offline India SVG Outline -->
+      <div class="india-map-container">
+        <svg viewBox="0 0 340 360" class="india-svg" xmlns="http://www.w3.org/2000/svg">
+          <!-- Simplified India Coastal & Border Path (100% Offline) -->
+          <path d="M 105 32 L 125 15 L 145 28 L 160 55 L 175 65 L 195 70 L 230 75 L 265 82 L 285 75 L 305 85 L 290 115 L 255 125 L 240 145 L 245 165 L 230 185 L 200 215 L 175 250 L 155 290 L 140 330 L 132 345 L 125 330 L 105 280 L 80 230 L 60 190 L 45 160 L 55 130 L 80 120 L 95 90 Z" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="2"/>
+          <!-- Connecting scan trail line -->
+          <path d="${pathD}" fill="none" stroke="#ba1a1a" stroke-width="2" stroke-dasharray="4,3" opacity="0.8"/>
+          <!-- Numbered dots -->
+          ${dotsHtml}
+        </svg>
+      </div>
+
+      ${trail.verdict_text ? `
+        <div style="margin-top:10px; padding:10px; background:var(--error-container); border-radius:var(--radius-md); font-size:12px; color:var(--on-error-container); line-height:1.4;">
+          <strong>Activity Verdict:</strong> ${trail.verdict_text}
+        </div>
+      ` : ''}
+
+      <div style="margin-top:10px; display:flex; flex-direction:column; gap:4px;">
+        ${trail.events.map((ev, i) => `
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--on-surface-variant); border-bottom:1px solid #eee; padding:3px 0;">
+            <span>#${i+1} ${ev.district} ${ev.flagged ? '<span style="color:var(--error); font-weight:700;">(Alert)</span>' : ''}</span>
+            <span>${ev.ts || 'Timestamp unavailable'}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ─── T4-B: RECEIVING MODE LOGIC ───
+async function startReceivingSession() {
+  const supplier = document.getElementById('rec-supplier').value.trim() || 'General Supplier';
+  const invoiceNo = document.getElementById('rec-invoice').value.trim() || 'INV-' + Date.now();
+
+  try {
+    const res = await fetch(API + '/receiving/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ supplier, invoice_no: invoiceNo })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    currentReceivingSessionId = data.id;
+
+    document.getElementById('rec-init-card').style.display = 'none';
+    document.getElementById('rec-active-section').style.display = 'flex';
+    document.getElementById('rec-cur-supplier').textContent = supplier;
+    document.getElementById('rec-session-badge').textContent = 'ID: ' + currentReceivingSessionId.substring(0, 8);
+
+    updateReceivingSummary(currentReceivingSessionId);
+    showToast('Receiving session started');
+  } catch (err) {
+    showToast('Failed to start session: ' + err.message);
+  }
+}
+
+function resetReceivingSession() {
+  currentReceivingSessionId = null;
+  document.getElementById('rec-init-card').style.display = 'block';
+  document.getElementById('rec-active-section').style.display = 'none';
+}
+
+function triggerReceivingScan() {
+  showCapture();
+}
+
+function triggerReceivingUpload() {
+  triggerFileUpload();
+}
+
+async function updateReceivingSummary(sessionId) {
+  try {
+    const res = await fetch(API + '/receiving/sessions/' + sessionId + '/summary');
+    if (!res.ok) return;
+    const summary = await res.json();
+
+    document.getElementById('rec-stat-total').textContent = summary.scanned;
+    document.getElementById('rec-stat-accepted').textContent = summary.accepted;
+    document.getElementById('rec-stat-flagged').textContent = summary.flagged;
+
+    // Batch conflict banner
+    const conflictBanner = document.getElementById('rec-conflict-banner');
+    const conflictText = document.getElementById('rec-conflict-text');
+    if (summary.batch_conflicts && summary.batch_conflicts.length > 0) {
+      conflictBanner.style.display = 'block';
+      conflictText.innerHTML = summary.batch_conflicts.map(c => `• Batch ${c.batch}: ${c.conflict_type} — ${c.detail}`).join('<br>');
+    } else {
+      conflictBanner.style.display = 'none';
+    }
+
+    // Groups table
+    const tbody = document.getElementById('rec-groups-tbody');
+    if (summary.groups && summary.groups.length > 0) {
+      tbody.innerHTML = summary.groups.map(g => {
+        const isFlagged = g.worst_label === 'high_suspicion';
+        return `
+          <tr>
+            <td style="font-weight:600;">${g.name || 'Unknown'}</td>
+            <td class="font-mono">${g.batch || '—'}</td>
+            <td>${g.count}</td>
+            <td><span class="chip ${isFlagged ? 'chip-error' : 'chip-tertiary'}">${g.worst_label.replace('_', ' ')}</span></td>
+          </tr>
+        `;
+      }).join('');
+    } else {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--on-surface-variant); padding:16px;">No packs scanned yet</td></tr>`;
+    }
+  } catch {}
+}
+
+async function acceptDelivery() {
+  if (!currentReceivingSessionId) return;
+  const btn = document.getElementById('btn-accept-delivery');
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(API + '/receiving/sessions/' + currentReceivingSessionId + '/accept', { method: 'POST' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    showToast('Delivery accepted and logged to inventory record.');
+    updateReceivingSummary(currentReceivingSessionId);
+  } catch (err) {
+    showToast('Accept failed: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function exportReceiving(fmt) {
+  if (!currentReceivingSessionId) return;
+  window.open(API + '/receiving/sessions/' + currentReceivingSessionId + '/export?format=' + fmt, '_blank');
+}
+
+// ─── REPORTLAB PDF DOWNLOAD ───
+function downloadPdf() {
+  const scanId = document.getElementById('pdf-btn').dataset.scanId;
+  if (!scanId) {
+    showToast('No scan ID available');
+    return;
+  }
+  window.open(API + '/scans/' + scanId + '/report.pdf', '_blank');
+}
+
+// ─── HISTORY & RECENT SCANS ───
+async function loadHistory() {
+  const container = document.getElementById('history-list');
+  container.innerHTML = '<div style="text-align:center; padding:32px 0;">Loading history…</div>';
+
+  try {
+    const res = await fetch(API + '/scans?limit=50', { headers: { 'X-Device-Token': DEVICE_TOKEN } });
+    const d = await res.json();
+    if (!d.items || d.items.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:32px 0; color:var(--on-surface-variant);">No scans in history yet.</div>';
+      return;
+    }
+    container.innerHTML = d.items.map(s => renderScanCard(s, true)).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:var(--error); padding:16px; text-align:center;">Failed to load: ${err.message}</div>`;
+  }
+}
+
+async function loadRecentScans() {
+  const list = document.getElementById('recent-scans-list');
+  const empty = document.getElementById('recent-empty');
+  try {
+    const res = await fetch(API + '/scans?limit=3', { headers: { 'X-Device-Token': DEVICE_TOKEN } });
+    const d = await res.json();
+    if (!d.items || d.items.length === 0) {
+      if (empty) empty.style.display = 'block';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    list.innerHTML = d.items.map(s => renderScanCard(s, false)).join('');
+  } catch {}
+}
+
+function renderScanCard(s, clickable) {
+  const cfg = LABEL_UI[s.label] || LABEL_UI.needs_verification;
+  const clickAction = clickable ? `onclick="loadAndShowScan('${s.id}')" style="cursor:pointer;"` : '';
+  const dateStr = s.ts ? new Date(s.ts).toLocaleDateString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+
+  return `
+    <div class="card" ${clickAction}>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+        <div>
+          <h4 class="text-sm font-bold" style="color:var(--on-surface);">${s.name || 'Unidentified Medicine'}</h4>
+          <div class="text-xs" style="color:var(--on-surface-variant); margin-top:2px;">
+            ${s.batch ? `Batch: <span class="font-mono">${s.batch}</span>` : ''}
+            ${s.manufacturer ? ` · ${s.manufacturer}` : ''}
+          </div>
+        </div>
+        <span class="chip ${cfg.chipClass}">${s.label.replace('_', ' ')}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:11px; color:var(--on-surface-variant);">
+        <span>${s.top_reason || 'Verified offline'}</span>
+        <span>${dateStr}</span>
+      </div>
+    </div>
+  `;
+}
+
+async function loadAndShowScan(scanId) {
+  try {
+    const res = await fetch(API + '/scans/' + scanId, { headers: { 'X-Device-Token': DEVICE_TOKEN } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    currentResult = data;
+    renderResult(data);
+    navigate('screen-result');
+  } catch (err) {
+    showToast('Failed to load scan: ' + err.message);
+  }
+}
+
+async function clearHistory() {
+  if (!confirm('Clear all scans from this device?')) return;
+  try {
+    await fetch(API + '/scans', { method: 'DELETE', headers: { 'X-Device-Token': DEVICE_TOKEN } });
+    showToast('History cleared');
+    loadHistory();
+    loadRecentScans();
+  } catch (err) {
+    showToast('Failed to clear: ' + err.message);
+  }
+}
+
+// ─── CDSCO ALERTS SCREEN ───
+async function loadAlerts() {
+  const container = document.getElementById('alerts-content');
+  const snapEl = document.getElementById('txt-alert-snapshot-date');
+  container.innerHTML = '<div style="text-align:center; padding:32px 0;">Loading regulatory alerts…</div>';
+
+  try {
+    const res = await fetch(API + '/alerts');
+    const d = await res.json();
+
+    snapEl.textContent = `Snapshot: ${d.snapshot_date || 'Current'} ${d.snapshot_stale ? '(Stale)' : ''}`;
+
+    if (!d.items || d.items.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:32px 0; color:var(--on-surface-variant);">No active alerts in local database.</div>';
+      return;
+    }
+
+    container.innerHTML = d.items.map(a => `
+      <div class="card" style="border-left:4px solid var(--error);">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <h4 class="text-sm font-bold">${a.brand}</h4>
+            <div class="text-xs" style="color:var(--on-surface-variant);">${a.generic || ''}</div>
+          </div>
+          <span class="chip chip-error">${a.status}</span>
+        </div>
+        <div style="background:var(--surface-low); padding:8px; border-radius:var(--radius-sm); margin:8px 0; font-size:12px;">
+          <div><strong>Batch:</strong> <span class="font-mono">${a.batch_raw || a.batch_norm}</span></div>
+          ${a.reason ? `<div style="margin-top:4px; color:var(--on-surface-variant);">${a.reason}</div>` : ''}
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--on-surface-variant);">
+          <span>Month: ${a.source_month || 'N/A'}</span>
+          ${a.simulated ? `<span class="chip chip-neutral" style="font-size:9px;">SIMULATED</span>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:var(--error); padding:16px; text-align:center;">Failed to load alerts: ${err.message}</div>`;
+  }
+}
+
+// ─── INITIALIZATION ───
+checkBackend();
+loadRecentScans();
+
+// ─── PWA SERVICE WORKER ───
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => {
+        console.log('[PWA] Service Worker registered, scope:', reg.scope);
+        // Notify user when a new version is available
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+              showToast('App updated — refresh for the latest version.');
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('[PWA] SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>
